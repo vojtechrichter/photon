@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Vojtechrichter\StaticPhpDepCompiler;
+namespace Photon\Dependencies;
 
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 
-final class DependencyCollector extends NodeVisitorAbstract
+final class DependencyVisitor extends NodeVisitorAbstract
 {
-    /** @var array<non-empty-string|list<class-string>, class-string> */
     private array $dependsOn = [];
     private ?string $currentFile = null;
     private ?string $currentNamespace = null;
@@ -60,12 +59,20 @@ final class DependencyCollector extends NodeVisitorAbstract
             }
         }
 
-        if ($node->type instanceof Node\Name) {
+        if (isset($node->type) && $node instanceof Node\Name) {
             $this->addDependency($node->type->toString());
         }
 
         if ($node instanceof Node\Param && $node->type instanceof Node\Name) {
             $this->addDependency($node->type->toString());
+        }
+
+        if ($node instanceof Node\Stmt\Declare_ && count($node->declares) > 0) {
+            foreach ($node->declares as $declare) {
+                if ($declare->key?->name === 'strict_types') {
+                    return;
+                }
+            }
         }
     }
 

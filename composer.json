@@ -1,9 +1,9 @@
 {
-    "name": "vojtechrichter/static-php-dep-compiler",
+    "name": "vojtechrichter/photon",
     "type": "library",
     "autoload": {
         "psr-4": {
-            "Vojtechrichter\\StaticPhpDepCompiler\\": "src/"
+            "Photon\\": "src/"
         }
     },
     "authors": [
