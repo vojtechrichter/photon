@@ -9,10 +9,12 @@ use PhpParser\NodeVisitorAbstract;
 
 final class DependencyCollector extends NodeVisitorAbstract
 {
-    /** @var array<non-empty-string, class-string> */
+    /** @var array<non-empty-string|list<class-string>, class-string> */
     private array $dependsOn = [];
     private ?string $currentFile = null;
     private ?string $currentNamespace = null;
+
+    /** @var list<class-string> */
     private array $declaredInFile = [];
 
     public function setCurrentFile(string $file): void
@@ -21,7 +23,7 @@ final class DependencyCollector extends NodeVisitorAbstract
         $this->declaredInFile = [];
     }
 
-    public function enterNode(Node $node): void
+    public function enterNode(Node $node)
     {
         if ($node instanceof Node\Stmt\Namespace_) {
             $this->currentNamespace = $node->name?->toString() ?? '';
@@ -58,7 +60,7 @@ final class DependencyCollector extends NodeVisitorAbstract
             }
         }
 
-        if ($node->type && $node->type instanceof Node\Name) {
+        if ($node->type instanceof Node\Name) {
             $this->addDependency($node->type->toString());
         }
 
@@ -79,7 +81,19 @@ final class DependencyCollector extends NodeVisitorAbstract
         }
     }
 
+    /**
+     * @return array<non-empty-string, list<class-string>>
+     */
     public function getDependencies(): array
+    {
+        $result = [];
+        foreach ($this->dependsOn as $file => $deps) {
+            $result[$file] = $this->declaredInFile;
+        }
+        return $result;
+    }
+
+    public function getDeclared(): array
     {
         $result = [];
         foreach ($this->dependsOn as $file => $deps) {
